@@ -14,8 +14,6 @@ var (
 	fileName = ".todo.json"
 )
 
-
-
 func TestMain(m *testing.M) {
 	fmt.Println("Buildig tool...")
 
@@ -63,7 +61,7 @@ func TestTodoCLI(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expected := task + "\n"
+		expected := fmt.Sprintf(" 1: %s\n", task)
 		if expected != string(out) {
 			t.Errorf("Expected %q, got %q instead \n", expected, string(out))
 		}

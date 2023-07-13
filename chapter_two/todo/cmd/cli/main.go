@@ -1,13 +1,33 @@
 package main
 
 import (
+	"bufio"
 	todo "cli-go"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 )
 
 const todoFilename = ".todo.json"
+
+func getTask(r io.Reader, args ...string) (string, error) {
+	if len(args) > 0 {
+		return strings.Join(args, " "), nil
+	}
+	s := bufio.NewScanner(r)
+	s.Scan()
+	if err := s.Err(); err != nil {
+		return "", err
+	}
+	if len(s.Text()) == 0 {
+		return "", fmt.Errorf("Task cannot be blank")
+	}
+
+	return s.Text(), nil
+
+}
 
 func main() {
 
@@ -17,7 +37,7 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	taskFlag := flag.String("task", "", "Task to be includede in the TodoList")
+	addkFlag := flag.String("add", "", "Task to be includede in the TodoList")
 	listFlag := flag.Bool("list", false, "List all task")
 	completeFlag := flag.Int("complete", 0, "Item to be completed")
 
@@ -31,11 +51,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		for _, item := range *l {
-			if !item.Done {
-				fmt.Println(item.Task)
-			}
-		}
+		fmt.Print(l)
 
 	case *completeFlag > 0:
 		if err := l.Complete(*completeFlag); err != nil {
@@ -46,8 +62,13 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	case *taskFlag != "":
-		l.Add(*taskFlag)
+	case *addkFlag != "":
+		t, err := getTask(os.Stdin, flag.Args()...)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		l.Add(t)
 		if err := l.Save(todoFilename); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
